@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>UTS IOT 152022164 Rhestu Dzulkifli</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        min-height: 100vh;
+        margin: 0;
+        background-color: #f0f4f8;
+      }
+
+      h1 {
+        color: #333;
+      }
+
+      form {
+        display: grid;
+        gap: 10px;
+        max-width: 300px;
+        width: 100%;
+        margin-bottom: 20px;
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      label {
+        font-weight: bold;
+        color: #555;
+      }
+
+      input[type="range"] {
+        width: 100%;
+        height: 8px;
+        background-color: #ddd;
+        border-radius: 5px;
+        -webkit-appearance: none;
+      }
+
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 16px;
+        height: 16px;
+        background: #007bff;
+        border-radius: 50%;
+        cursor: pointer;
+      }
+
+      button {
+        padding: 10px;
+        font-size: 16px;
+        font-weight: bold;
+        color: white;
+        background-color: #007bff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      button:hover {
+        background-color: #0056b3;
+      }
+
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        max-width: 600px;
+        margin-top: 20px;
+        background: #fff;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      th, td {
+        padding: 12px;
+        text-align: center;
+        border-bottom: 1px solid #ddd;
+      }
+
+      th {
+        background-color: #007bff;
+        color: white;
+      }
+
+      tr:nth-child(even) {
+        background-color: #f2f2f2;
+      }
+
+      #get-data {
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Data Sensor IOT</h1>
+    <form id="form">
+      <label for="suhu">Suhu:</label>
+      <input id="suhu" type="range" name="suhu" min="0" max="100" />
+
+      <label for="kelembaban">Kelembaban:</label>
+      <input id="kelembaban" type="range" name="kelembaban" min="0" max="100" />
+
+      <label for="kecerahan">Kecerahan:</label>
+      <input id="kecerahan" type="range" name="kecerahan" min="0" max="100" />
+
+      <button type="submit">KIRIM!</button>
+    </form>
+
+    <table border="1">
+      <thead>
+        <tr>
+          <th>IDX</th>
+          <th>Suhu</th>
+          <th>Kelembaban</th>
+          <th>Kecerahan</th>
+          <th>Timestamp</th>
+        </tr>
+      </thead>
+      <tbody id="table-content"></tbody>
+    </table>
+
+    <button id="get-data" type="button">GET DATA</button>
+
+    <script>
+      document.querySelector("#form").addEventListener("submit", (e) => {
+        e.preventDefault();
+
+        const form = e.target;
+
+        const data = {
+          suhu: form.suhu.value,
+          kelembaban: form.kelembaban.value,
+          kecerahan: form.kecerahan.value,
+        };
+
+        fetch("/api/post", {
+          method: "post",
+          headers: {
+            "content-type": "application/json",
+          },
+          body: JSON.stringify(data),
+        })
+          .then(() => alert("sukses"))
+          .catch(() => alert("gagal"));
+      });
+
+      const table = document.querySelector("#table-content");
+
+      document.querySelector("#get-data").addEventListener("click", () => {
+        fetch("/api/get")
+          .then((res) => res.json())
+          .then((json) => {
+            const database = json["nilai_suhu_max_humid_max"];
+
+            if (!database) return alert("data tidak terbaca!");
+
+            table.innerHTML = "";
+
+            for (const data of database) {
+              const row = document.createElement("tr");
+              const idxCol = document.createElement("td");
+              const tempCol = document.createElement("td");
+              const humdCol = document.createElement("td");
+              const lighCol = document.createElement("td");
+              const timeCol = document.createElement("td");
+
+              idxCol.textContent = data["idx"];
+              tempCol.textContent = data["suhu"];
+              humdCol.textContent = data["humid"];
+              lighCol.textContent = data["kecerahan"];
+              timeCol.textContent = data["timestamp"];
+
+              row.append(idxCol, tempCol, humdCol, lighCol, timeCol);
+              table.append(row);
+            }
+          });
+      });
+    </script>
+  </body>
+</html>
